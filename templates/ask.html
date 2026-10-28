@@ -1,0 +1,81 @@
+{{define "ask.html"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f7fb" />
+    <title>{{.Title}} · RAG Desk</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/documents"><span class="brand-mark">R</span><span>RAG <span class="brand-light">Desk</span></span></a>
+      <nav class="nav-left" aria-label="Main navigation">
+        <a class="nav-link" href="/documents">Library</a>
+        <a class="nav-link active" href="/ask" aria-current="page">Ask</a>
+      </nav>
+      <form action="/logout" method="post">
+        <button type="submit" class="button button-quiet">Sign out</button>
+      </form>
+    </header>
+
+    <main class="container narrow">
+      <section class="page-heading ask-heading">
+        <div>
+          <p class="eyebrow">DOCUMENT Q&A</p>
+          <h1>Find answers in your files</h1>
+          <p class="subheading">Ask a question in plain language. Answers are based on the most relevant passages in your library.</p>
+        </div>
+      </section>
+
+      {{if .Notice}}<div class="notice notice-success" role="status">{{.Notice}}</div>{{end}}
+      {{if .Error}}<div class="notice notice-error" role="alert">{{.Error}}</div>{{end}}
+
+      <section class="card question-card">
+        <form method="post" action="/ask" data-busy-message="Searching your documents and preparing an answer…">
+          <label class="question-label" for="question">Your question</label>
+          <textarea id="question" name="question" rows="3" maxlength="4000" placeholder="What would you like to know?" required>{{if .Answer}}{{.Answer.Question}}{{else}}{{.Question}}{{end}}</textarea>
+          <div class="form-footer">
+            <span class="field-hint">Answers include source passages so you can verify them.</span>
+            <button type="submit" class="button button-primary"><span>Find answer</span><span aria-hidden="true">→</span></button>
+          </div>
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      {{if .Answer}}
+        <section class="answer-section" aria-live="polite">
+          <div class="answer-heading"><span class="answer-mark">✦</span><h2>Answer</h2></div>
+          <div class="card answer-card">
+            <p class="answer-text">{{.Answer.Answer}}</p>
+          </div>
+          {{if .Answer.Sources}}
+            <div class="source-heading">
+              <div><p class="eyebrow">RETRIEVED CONTEXT</p><h2>Sources</h2></div>
+              <span class="count">{{len .Answer.Sources}}</span>
+            </div>
+            <div class="source-list">
+              {{range .Answer.Sources}}
+                <article class="source-card">
+                  <div class="source-file"><span class="file-icon small" aria-hidden="true">TXT</span><strong>{{.Filename}}</strong></div>
+                  <blockquote>{{.Text}}</blockquote>
+                </article>
+              {{end}}
+            </div>
+          {{else}}
+            <div class="notice notice-neutral">No matching passages were found in the uploaded files.</div>
+          {{end}}
+        </section>
+      {{else}}
+        <section class="how-it-works">
+          <span class="how-icon" aria-hidden="true">⌕</span>
+          <div><strong>Answers with evidence</strong><p>We search your indexed files first, then show the passages used to prepare the answer.</p></div>
+        </section>
+      {{end}}
+      <footer class="page-footer">The model can make mistakes. Use the source excerpts to check important details.</footer>
+    </main>
+  </body>
+</html>
+{{end}}
